@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Random Pattern Gen</title>
+    <script
+			  src="https://code.jquery.com/jquery-3.3.1.min.js"
+			  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+			  crossorigin="anonymous"></script>
+    <script
+			  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+			  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+			  crossorigin="anonymous"></script>
+    <style>
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+
+        input[type=range] {
+            background: rgba(0, 0, 0, 0);
+        }
+    </style>
+  </head>
+  <body style="margin: 0">
+    <canvas></canvas>
+    <script>
+        // const width = 1500
+        // const height = 1500
+        const canvas = document.getElementsByTagName('canvas')[0]
+        canvas.width = screen.width
+        canvas.height = screen.height
+        let width = canvas.width
+        let height = canvas.height
+        let data = []
+        const random = (min = 0, max = 256) => Math.floor(Math.random() * (max - min) + min)
+        let interval = random(10, 100)
+        let variation = Math.random()
+        let h = random(0, 360)
+        $(() => {
+            $('#I').val(interval)
+            $('#V').val(variation)
+            $('#H').val(h)
+        })
+        if (canvas.getContext)
+            var ctx = canvas.getContext('2d')
+        const randomHSL = (hue) => `hsl(${hue}, ${random(80, 100)}%, ${random(30, 50)}%`
+        const changePath = ({_i, _v}) => {
+            genData({_i, _v})
+            drawPattern()
+        }
+        const changeHSL = ({_h, _s, _l}) => {
+            h = _h || h
+            // s = _s || s
+            drawPattern()
+        }
+        const genData = ({_i, _v}) => {
+            interval = _i || interval
+            variation = _v || variation
+            data = Array.apply(0, Array(Math.floor(height / interval) + 2))
+                .map((e, yi) => Array.apply(0, Array(Math.floor(width / interval) + 2))
+                    .map((e, xi) => ({
+                        x: xi * interval + (Math.random() - 1) * interval * variation,
+                        y: yi * interval + (Math.random() - 1) * interval * variation,
+                    })))
+        }
+        const drawPattern = () => {
+            xlen = data.length
+            data.forEach((e, xi) => {
+                ylen = e.length
+                e.forEach((_, yi) => {
+                    if (xi + 1 < xlen && yi + 1 < ylen) {
+                        const odd = (xi + yi) % 2
+                        const even = 1 - odd
+                        const hsl = randomHSL(h)
+                        ctx.fillStyle = hsl
+                        ctx.strokeStyle = hsl
+                        ctx.beginPath();
+                        ctx.moveTo(...Object.values(data[xi + even][yi]))
+                        ctx.lineTo(...Object.values(data[xi + odd][yi]))
+                        ctx.lineTo(...Object.values(data[xi + odd][yi + 1]))
+                        ctx.fill()
+                        ctx.stroke()
+                        const hsl2 = randomHSL(h)
+                        ctx.fillStyle = hsl2
+                        ctx.strokeStyle = hsl2
+                        ctx.beginPath()
+                        ctx.moveTo(...Object.values(data[xi + even][yi]))
+                        ctx.lineTo(...Object.values(data[xi + even][yi + 1]))
+                        ctx.lineTo(...Object.values(data[xi + odd][yi + 1]))
+                        ctx.fill()
+                        ctx.stroke()
+                    }
+                })
+            })
+        }
+        changePath({_i: interval, _v: variation})
+
+        $(() => {
+            $('#S').slider({
+                range: true,
+                min: 0,
+                max: 100,
+                values: [100, 100],
+                // slide: (event, ui) => {
+                //     $('#')
+                // }
+            })
+        })
+    </script>
+    <div style="color: white; padding: 10px; border-radius: 10px; position: fixed; top: 50px; left: 50px; background: rgba(0, 0, 0, 0.5)">
+        <div>
+            <label>Interval</label>
+            <input type="range" min="10", max="100" value="10" id="I" oninput="changePath({ _i: this.value})">
+        </div>
+        <div>
+            <label>Variation</label>
+            <input type="range" min="0", max="1.0" value="0" id="V" step="0.05" oninput="changePath({_v: this.value})">
+        </div>
+        <div>
+            <label>Hue</label>
+            <input type="range" min="0", max="360" value="0" id="H" oninput="changeHSL({_h: this.value})">
+        </div>
+        <!-- <div>
+            <label>S</label>
+            <input type="range" min="0", max="100" id="S" oninput="oninputhandler(this.value)">
+        </div> -->
+        <!-- <div id="S"></div>
+        <div>
+            <label>L</label>
+            <input type="range" min="0", max="100" id="L" oninput="oninputhandler(this.value)">
+        </div> -->
+    </div>
+    </html>
+  </body>
